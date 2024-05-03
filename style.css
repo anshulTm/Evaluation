@@ -1,5 +1,7 @@
 body {
     margin-right: 30%;
+    font-family: "serif";
+    display: flex;
 }
 
 #app {
@@ -10,6 +12,7 @@ body {
     margin-top: 10%;
     margin-right: 10%;
     padding: 10%;
+    align-items: flex-start;
 }
 
 .inventory-container {
@@ -46,6 +49,27 @@ body {
     padding: 1em;
     border-radius: 5%;
     align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 2em;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cart-item-span {
+    display: inline-block;
+    text-overflow: ellipsis;
+    width: 8em;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.inventory-name-span {
+    display: inline-block;
+    text-overflow: ellipsis;
+    width: 5em;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .cart-delete {
@@ -94,10 +118,10 @@ body {
     gap: 1em;
 }
 
-li {
+/* li {
     display: flex;
     flex-direction: row;
     gap: 2em;
     align-items: flex-start;
     justify-content: space-between;
-}
+} */
