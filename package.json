@@ -1,0 +1,25 @@
+{
+  "name": "evaluation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "json-server": "json-server --watch db.json",
+    "live-server": "live-server --ignore=./db.json ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anshulTm/Evaluation.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anshulTm/Evaluation/issues"
+  },
+  "homepage": "https://github.com/anshulTm/Evaluation#readme",
+  "dependencies": {
+    "json-server": "^1.0.0-alpha.23",
+    "live-server": "^1.2.2"
+  }
+}
