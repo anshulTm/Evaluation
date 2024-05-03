@@ -19,7 +19,6 @@ const API = (() => {
   
     const addToCart = async (inventoryItem) => {
       // define your method to add an item to cart
-        
         let response = await fetch(`http://localhost:3000/${cart}`, {
             method: "POST",
             headers: {
@@ -81,16 +80,39 @@ const API = (() => {
       #onChange;
       #inventory;
       #cart;
+      #inventoryPage;
+      #totalPerPage;
+      #currPage;
       constructor() {
         this.#inventory = [];
         this.#cart = [];
+        this.#inventoryPage = 0;
+        this.#totalPerPage = 5;
+        this.#currPage = 0;
       }
+
       get cart() {
         return this.#cart;
       }
   
       get inventory() {
         return this.#inventory;
+      }
+
+      get inventoryPage() {
+        return this.#inventoryPage;
+      }
+
+      get currPage() {
+        return this.#currPage;
+      }
+
+      set currPage(page) {
+        this.#currPage = page;
+      }
+
+      set inventoryPage(page) {
+        this.#inventoryPage = page;
       }
   
       set cart(newCart) {
@@ -175,7 +197,6 @@ const API = (() => {
     };
 
     const renderCart = (cartList) => {
-        // console.log(cartList);
         while (cartListElem.firstChild) {
             cartListElem.removeChild(cartListElem.firstChild);
         }
@@ -188,7 +209,6 @@ const API = (() => {
             const cartItemSpan = document.createElement('span');
             cartItemSpan.className = "cart-item-span";
             cartItemSpan.innerHTML = `${element.content} x ${element.quantity}`;
-
             const deleteButton = document.createElement('button');
             deleteButton.innerText = 'delete';
             deleteButton.className = 'cart-delete';
@@ -204,7 +224,6 @@ const API = (() => {
   const Controller = ((model, view) => {
     // implement your logic for Controller
     const state = new model.State();
-    // const view = new view()
   
     const init = async () => {
         state.cart = await model.getCart();
@@ -216,7 +235,6 @@ const API = (() => {
     const handleUpdateAmount = () => {
         // console.log(document.querySelector(".inventory-item"));
         let element = view.getUIElem(".inventory-list");
-        
         element.addEventListener("click", (event) => {
             const elem = event.target;
             if (elem.className === "inventory-delete") {
@@ -231,11 +249,12 @@ const API = (() => {
                 const id = elem.parentElement.getAttribute("id");
                 state.inventory = state.inventory.map((item) => {
                     if ("inventory" + item.id === id) {
-                        item.quantity = item.quantity + 1;
+                        item.quantity++;
                     }
                     return item;
                 })
             }
+            
             view.renderInventory(state.inventory);
         });
     };
@@ -258,7 +277,6 @@ const API = (() => {
                     return;
 
                 let val = state.cart.find(cartItem => cartItem.id === currInventory[0].id);
-                // console.log(val);
                 if (val === undefined) {
                     await model.addToCart(currInventory[0]);
                     state.cart = [...state.cart, currInventory[0]];
@@ -266,8 +284,8 @@ const API = (() => {
                     val.quantity += currInventory[0].quantity;
                     await model.updateCart(val.id, val.quantity, val.content);
                 }
+                view.renderCart(state.cart);
             } 
-            view.renderCart(state.cart);
         });
     };
   
@@ -284,8 +302,7 @@ const API = (() => {
                         return false;
                     }
                     return true;
-                })
-                // console.log(state.cart);
+                });
                 let res = await model.deleteFromCart(delId);
                 if (res)
                     view.renderCart(state.cart); 
@@ -295,9 +312,7 @@ const API = (() => {
     };
   
     const handleCheckout = () => {
-        console.log('here');
         let element = view.getUIElem(".cart-wrapper");
-        console.log(element);
         element.addEventListener("click", async (event) => {
             const elem = event.target;
             
