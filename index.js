@@ -44,7 +44,7 @@ const API = (() => {
             },
             body: JSON.stringify({
                 "quantity": newAmount,
-                "conten": content
+                "content": content
             })
         });
         response = await response.json();
