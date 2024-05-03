@@ -35,8 +35,20 @@ const API = (() => {
         return response;
     };
   
-    const updateCart = async (id, newAmount) => {
+    const updateCart = async (id, newAmount, content) => {
       // define your method to update an item in cart
+      let response = await fetch(`http://localhost:3000/${cart}/${id}`, {
+            method: "PUT",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                "quantity": newAmount,
+                "conten": content
+            })
+        });
+        response = await response.json();
+        return response;
     };
   
     const deleteFromCart = async (id) => {
@@ -252,7 +264,7 @@ const API = (() => {
                     state.cart = [...state.cart, currInventory[0]];
                 } else {
                     val.quantity += currInventory[0].quantity;
-                    await model.updateCart(val.id, val.quantity);
+                    await model.updateCart(val.id, val.quantity, val.content);
                 }
             } 
             view.renderCart(state.cart);
