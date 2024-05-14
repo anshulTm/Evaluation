@@ -107,6 +107,10 @@ const API = (() => {
         return this.#currPage;
       }
 
+      get totalPerPage() {
+        return this.#totalPerPage;
+      }
+
       set currPage(page) {
         this.#currPage = page;
       }
@@ -153,6 +157,7 @@ const API = (() => {
   })();
   
   const View = (() => {
+    const inventoryContainerElem = document.querySelector(".inventory-container");
     const inventoryListElem = document.querySelector(".inventory-list");
     const cartListElem = document.querySelector(".cart-list");
 
@@ -160,8 +165,12 @@ const API = (() => {
         return document.querySelector(value);
     }
 
-    const renderInventory = (inventoryList) => {
-        // console.log(inventoryList);
+    const renderInventory = (inventoryList, currPage = 0, totalItems = 5) => {
+        inventoryList = inventoryList.slice(
+          Math.min(currPage*totalItems, inventoryList.length), 
+          Math.min(currPage*totalItems + totalItems, inventoryList.length)
+        );
+
         while (inventoryListElem.firstChild) {
             inventoryListElem.removeChild(inventoryListElem.firstChild);
         }
@@ -194,7 +203,24 @@ const API = (() => {
             li.append(inventorySpan, deleteButton, inventoryQuantitySpan, addButton, addToCartButton);
             inventoryListElem.append(li);
         });
+        
     };
+
+    const renderPageChangeButtons = () => {
+      const buttonItemSpan = document.createElement('span');
+      buttonItemSpan.className = "button-span";
+
+      const prevPageButton = document.createElement('button');
+      prevPageButton.innerText = 'Prev';
+      prevPageButton.className = 'prev-page';
+
+      const nextPageButton = document.createElement('button');
+      nextPageButton.innerText = 'Next';
+      nextPageButton.className = 'next-page';
+
+      buttonItemSpan.append(prevPageButton, nextPageButton);
+      inventoryContainerElem.append(buttonItemSpan);
+    }
 
     const renderCart = (cartList) => {
         while (cartListElem.firstChild) {
@@ -218,7 +244,22 @@ const API = (() => {
         });
     };
 
-    return {getUIElem, renderInventory, renderCart};
+    const changePage = (inventoryList, pageChange = 0, currPage = 0, totalItems = 5) => {
+      
+      if (pageChange === -1) {
+        let newPage = Math.max(currPage + pageChange, 0);
+        if (newPage === currPage) 
+          return;
+        renderInventory(inventoryList, newPage, totalItems);
+      } else if (pageChange === 1) {
+        newPage = Math.min(currPage + pageChange, Math.floor(inventoryList.length / totalItems));
+        if (newPage === currPage) 
+          return;
+        renderInventory(inventoryList, newPage, totalItems);
+      }
+    }
+
+    return {getUIElem, renderInventory, renderCart, renderPageChangeButtons, changePage};
   })();
   
   const Controller = ((model, view) => {
@@ -228,15 +269,24 @@ const API = (() => {
     const init = async () => {
         state.cart = await model.getCart();
         state.inventory = await model.getInventory();
-        view.renderInventory(state.inventory);
+        state.inventory = state.inventory.map((item) => {
+            if (item.quantity === undefined) {
+                item.quantity = 0;
+            }
+            return item;
+          }
+        );
+        state.currPage = 0
+        view.renderInventory(state.inventory, state.currPage, state.totalItems);
         view.renderCart(state.cart);
+        view.renderPageChangeButtons();
     };
 
     const handleUpdateAmount = () => {
-        // console.log(document.querySelector(".inventory-item"));
         let element = view.getUIElem(".inventory-list");
         element.addEventListener("click", (event) => {
             const elem = event.target;
+            event.preventDefault();
             if (elem.className === "inventory-delete") {
                 const id = elem.parentElement.getAttribute("id");
                 state.inventory = state.inventory.map((item) => {
@@ -245,17 +295,17 @@ const API = (() => {
                     }
                     return item;
                 })
+                view.renderInventory(state.inventory, state.currPage, state.totalItems);
             } else if (elem.className === "inventory-add") {
                 const id = elem.parentElement.getAttribute("id");
                 state.inventory = state.inventory.map((item) => {
                     if ("inventory" + item.id === id) {
-                        item.quantity++;
+                        item.quantity += 1;
                     }
                     return item;
                 })
+                view.renderInventory(state.inventory, state.currPage, state.totalItems);
             }
-            
-            view.renderInventory(state.inventory);
         });
     };
   
@@ -264,6 +314,7 @@ const API = (() => {
         
         element.addEventListener("click", async (event) => {
             const elem = event.target;
+            event.preventDefault();
             if (elem.className === "cart-add") {
                 const id = elem.parentElement.getAttribute("id");
                 let currInventory = state.inventory.filter((element) => {
@@ -284,15 +335,34 @@ const API = (() => {
                     val.quantity += currInventory[0].quantity;
                     await model.updateCart(val.id, val.quantity, val.content);
                 }
+                // Array.prototype.some
                 view.renderCart(state.cart);
             } 
         });
     };
+
+    const handlePageChange = () => {
+      let element = view.getUIElem(".button-span");
+      element.addEventListener("click", async (event) => {
+        const elem = event.target;
+        if (elem.className === "prev-page") {
+          view.changePage(state.inventory, -1, state.currPage, state.totalPerPage);
+          state.currPage = Math.max(0, state.currPage - 1);
+        } else if (elem.className === "next-page") {
+          view.changePage(state.inventory, 1, state.currPage, state.totalPerPage);
+          state.currPage = Math.min(Math.floor(state.inventory.length / state.totalPerPage), state.currPage + 1);
+        }
+      });
+
+      return;
+    }
   
     const handleDelete = () => {
         let element = view.getUIElem(".cart-list");
         element.addEventListener("click", async (event) => {
+            event.preventDefault();
             const elem = event.target;
+            
             if (elem.className === "cart-delete") {
                 const id = elem.parentElement.getAttribute("id");
                 let delId;
@@ -314,6 +384,7 @@ const API = (() => {
     const handleCheckout = () => {
         let element = view.getUIElem(".cart-wrapper");
         element.addEventListener("click", async (event) => {
+            event.preventDefault();
             const elem = event.target;
             
             if (elem.className === "checkout-btn") {
@@ -330,6 +401,7 @@ const API = (() => {
         await init();
         handleUpdateAmount();
         handleAddToCart();
+        handlePageChange();
         handleDelete();
         handleCheckout();
     };

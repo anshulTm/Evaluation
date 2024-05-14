@@ -1,5 +1,21 @@
 {
-  "cart": [],
+  "cart": [
+    {
+      "id": "2",
+      "content": "peach",
+      "quantity": 4
+    },
+    {
+      "id": "4",
+      "content": "iphone",
+      "quantity": 3
+    },
+    {
+      "id": "8",
+      "content": "lebron",
+      "quantity": 3
+    }
+  ],
   "inventory": [
     {
       "content": "apple",
@@ -8,6 +24,30 @@
     {
       "content": "peach",
       "id": "2"
+    },
+    {
+      "content": "orange",
+      "id": "3"
+    },
+    {
+      "content": "iphone",
+      "id": "4"
+    },
+    {
+      "content": "ipad",
+      "id": "5"
+    },
+    {
+      "content": "plonk",
+      "id": "6"
+    },
+    {
+      "content": "gabe",
+      "id": "7"
+    },
+    {
+      "content": "lebron",
+      "id": "8"
     }
   ]
 }
